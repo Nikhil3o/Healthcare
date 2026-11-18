@@ -1,0 +1,35 @@
+{
+  "name": "healthcare-devsecops",
+  "version": "1.0.0",
+  "description": "Secure DevSecOps Implementation for Healthcare System - HIPAA Compliant Patient Management API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --coverage --forceExit",
+    "test:security": "npm audit --audit-level=high",
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.6.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.4",
+    "express-validator": "^7.0.1",
+    "winston": "^3.11.0",
+    "dotenv": "^16.3.1",
+    "hpp": "^0.2.3",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "nodemon": "^3.0.1",
+    "eslint": "^8.53.0",
+    "eslint-plugin-security": "^1.7.1"
+  }
+}

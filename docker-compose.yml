@@ -1,0 +1,74 @@
+# ============================================
+# Docker Compose - Healthcare DevSecOps Stack
+# Includes: App, MongoDB, Security Scanner
+# ============================================
+version: '3.8'
+
+services:
+  # Healthcare API Application
+  healthcare-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: healthcare-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-healthcare-secret-change-me}
+      - JWT_EXPIRES_IN=1h
+      - PHI_ENCRYPTION_KEY=${PHI_ENCRYPTION_KEY:-change-this-256-bit-key-now!!}
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - AUDIT_LOG_ENABLED=true
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - healthcare-network
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # MongoDB Database
+  mongo:
+    image: mongo:7
+    container_name: healthcare-mongo
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - healthcare-network
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+networks:
+  healthcare-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "false"
+
+volumes:
+  mongo-data:
+    driver: local

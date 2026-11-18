@@ -1,0 +1,52 @@
+# ============================================
+# Docker Compose - Security Scanning Pipeline
+# Runs Trivy vulnerability scanning
+# ============================================
+version: '3.8'
+
+services:
+  # Trivy Security Scanner
+  trivy-scan:
+    image: aquasec/trivy:latest
+    container_name: trivy-scanner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./security/reports:/reports
+    command: >
+      image --severity HIGH,CRITICAL
+      --format table
+      --output /reports/trivy-report.txt
+      healthcare-devsecops-healthcare-api:latest
+    networks:
+      - scan-network
+
+  # Trivy JSON Report
+  trivy-json:
+    image: aquasec/trivy:latest
+    container_name: trivy-json
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./security/reports:/reports
+    command: >
+      image --severity HIGH,CRITICAL
+      --format json
+      --output /reports/trivy-report.json
+      healthcare-devsecops-healthcare-api:latest
+    networks:
+      - scan-network
+
+  # Dockerfile Linting with Hadolint
+  hadolint:
+    image: hadolint/hadolint:latest
+    container_name: hadolint-scanner
+    volumes:
+      - ./Dockerfile:/Dockerfile:ro
+      - ./security/reports:/reports
+    entrypoint: >
+      /bin/sh -c "hadolint /Dockerfile > /reports/hadolint-report.txt 2>&1 || true"
+    networks:
+      - scan-network
+
+networks:
+  scan-network:
+    driver: bridge
